@@ -12,10 +12,12 @@ app.use(express.static("static"));
 // /pub/markdown/readme.md
 app.use("/pub",express.static("static"));
 
-const env = nunjucks.configure("views",{
+//设置模板引擎
+nunjucks.configure("./templates",{
     autoescape:true,
     express:app,
 });
+//app.set("views","./templates");
 app.set("view engine","njk");
 //route
 app.get('/',function(request,response){
