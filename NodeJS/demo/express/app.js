@@ -3,6 +3,7 @@
 
 const express = require("express");
 const app = express();
+const nunjucks = require("nunjucks");
 const bookRouter = require("./controllers/book").router;
 
 //将static文件注册为静态文件库
@@ -11,6 +12,11 @@ app.use(express.static("static"));
 // /pub/markdown/readme.md
 app.use("/pub",express.static("static"));
 
+const env = nunjucks.configure("views",{
+    autoescape:true,
+    express:app,
+});
+app.set("view engine","njk");
 //route
 app.get('/',function(request,response){
     response.send("<h1>Hello World</h1>");    
@@ -40,8 +46,14 @@ app.route('/about')
 
 app.use("/",bookRouter);
 
+app.use(function(err,req,rsp,next){
+    console.log(`error:${err}`);
+    rsp.status(500).send("internal error..");
+});
+
 const server = app.listen(3000,function(){
     const host = server.address().address;
     const port = server.address().port;
     console.log(`Express application listenning at ${host}:${port}`);
 });
+

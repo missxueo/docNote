@@ -1,4 +1,3 @@
-
 const express = require("express");
 const router = express.Router();
 
@@ -8,7 +7,10 @@ function * get(){
         next();
     }
     yield (req,rsp,next)=>{
-        rsp.sendFile(`${__dirname}/book.js`);
+        rsp.render("index",{author:{
+            name:"jackie",
+            age:35
+        }});
     }
 }
 router.get('/book',...get());
