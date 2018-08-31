@@ -46,8 +46,8 @@ app.use("/index",function(req,res,next){
 
 ```js
 //将static文件注册为静态文件库
-app.use("/pub",express.static("static"));// http://localhost:3000/pub/image/demo.png
-app.use(express.static("static"));// http://localhost:3000/image/demo.png
+app.use("/pub",express.static("static"));   // http://localhost:3000/pub/image/demo.png
+app.use(express.static("static"));  // http://localhost:3000/image/demo.png
 
 
 ```
@@ -58,7 +58,8 @@ app.use(express.static("static"));// http://localhost:3000/image/demo.png
 ```js
 app.use(function(err,req,res,next){
     console.log(err);
-    next(err);//传给下一个错误处理中间件
+    rsp.status(500).send("UNKNOW ERROR");
+    //next(err);//传给下一个错误处理中间件
 });
 
 
@@ -69,8 +70,24 @@ app.use(function(err,req,res,next){
 ```js
 const router = express.Router();
 
-//todo
+app.router("/about")
+    .get(function(req,res){
+        res.render("about");
+    })
+    .post(function(req,res){
+        res.json({
+            email:null,
+            tel:null,
+            addr:null,
+        });
+    });
 
+let funcList = [];
+router.get('/book',function(req,res,next){
+    next();
+},...funcList);
+
+app.use("/",router);
 
 ```
 
@@ -91,6 +108,7 @@ nunjucks.configure("./templates",{
     autoescape:true,
     express:app,
 });
+//app.set("views","./templates"); 默认为./views文件夹
 app.set("view engine","njk");
 //todo
 app.get("/",function(req,res,next){
@@ -99,6 +117,21 @@ app.get("/",function(req,res,next){
 
 ```
 express模板引擎的接入原理
+
+通过`app.engine(ext, callback) `就可以开发模板引擎了，如果某些模板引擎未提供express的接入函数，可以通过该函数进行兼容。
+
+```js
+const {readFile} = require("fs");
+app.engine("njk",function(filepath,options,callback){
+    //...
+    return callback(...);
+});
+
+app.set('views', './views'); // 指定视图所在的位置
+app.set('view engine', 'njk'); // 注册模板引擎
+
+```
+
 
 # 集成数据库
 > 演示使用 mongodb
