@@ -9,29 +9,51 @@ npm install express --save
 const express = require("express");
 const app = express();
 
-//todo
+app.get("/",function(req,res,next){
+    res.send("<h1>Hello World</h1>")
+});
 
 app.listen(3000);
+
+//或者通过原生http启动，是为了可以同时监听http和https
+const http = require("http");
+http.createServer(app.callback()).listen(3001);
 
 ```
 
 # express的中间件
 
-```js
-app.use()
+中间件是介于request 和 response 之间的处理函数。  
 
-//todo
+大体上，有以下几种常用中间件，并且可以为中间件添加更多的自定义的中间件。
+
+* 路由
+* 错误处理 
+* 静态文件访问
+* 模板渲染
+* 参数处理
+* 其它更多
+
+可以观看官方api文档阅读关于中间件的一些资料。
+
+```js
+app.use("/index",function(req,res,next){
+    //todo    
+});
 
 ```
 # 静态文件
 
 ```js
+//将static文件注册为静态文件库
 app.use("/pub",express.static("static"));// http://localhost:3000/pub/image/demo.png
 app.use(express.static("static"));// http://localhost:3000/image/demo.png
 
 
 ```
 # express的错误处理
+
+错误处理中间件一定要在路由中间件之后添加到app中。
 
 ```js
 app.use(function(err,req,res,next){
