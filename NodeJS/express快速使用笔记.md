@@ -1,9 +1,13 @@
 
 # express 模块
 
-npm install express --save
+## 简介
 
-# express 快速启动
+express 是封装了node.js http包的一个开源webapp框架,更多详见[官方中文文档](http://www.expressjs.com.cn/)
+
+> npm install express --save
+
+## express 快速启动
 
 ```js
 const express = require("express");
@@ -21,7 +25,7 @@ http.createServer(app.callback()).listen(3001);
 
 ```
 
-# express的中间件
+## express的中间件
 
 中间件是介于request 和 response 之间的处理函数。  
 
@@ -42,7 +46,7 @@ app.use("/index",function(req,res,next){
 });
 
 ```
-# 静态文件
+## 静态文件
 
 ```js
 //将static文件注册为静态文件库
@@ -51,7 +55,7 @@ app.use(express.static("static"));  // http://localhost:3000/image/demo.png
 
 
 ```
-# express的错误处理
+## express的错误处理
 
 错误处理中间件一定要在路由中间件之后添加到app中。
 
@@ -65,7 +69,7 @@ app.use(function(err,req,res,next){
 
 ```
 
-# express的路由
+## express的路由
 
 ```js
 const router = express.Router();
@@ -91,16 +95,16 @@ app.use("/",router);
 
 ```
 
-# 更多中间件
+## 更多中间件
 
 * body-parser
 * cookie-parser
 * ==
 
-# 模板引擎的使用
+## 模板引擎的使用
 
-exp:
-npm install nunjucks --save
+以下用nunjunks 引擎为例：
+> npm install nunjucks --save
 
 ```js
 const nunjucks = require("nunjucks");
@@ -116,7 +120,7 @@ app.get("/",function(req,res,next){
 });
 
 ```
-express模板引擎的接入原理
+### express模板引擎的接入原理
 
 通过`app.engine(ext, callback) `就可以开发模板引擎了，如果某些模板引擎未提供express的接入函数，可以通过该函数进行兼容。
 
@@ -133,10 +137,13 @@ app.set('view engine', 'njk'); // 注册模板引擎
 ```
 
 
-# 集成数据库
-> 演示使用 mongodb
-npm install mongoose --save
+## 集成数据库
 
-```js
+* mongodb 简单使用
 
-```
+> 演示使用 mongodb，详见mongodb简单使用
+
+> npm install mongoose --save
+
+* mysql 简单使用
+
