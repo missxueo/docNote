@@ -7,7 +7,7 @@
 Generator 为生成器的意思；
 
 
-## Generator的使用
+## Generator的简单使用
 
 通过在申明方法的时候使用 * 和方法内使用`yield` 来表明自己的生成器函数身份。而调用生成器函数返回一个生成器。
 
@@ -98,11 +98,11 @@ readFileThunk(fileName)(callback);
 
 ```
 
-#### Thunkify 模块
+#### thunkify 模块
 
 > npm install thunkify
 
-使用大致如下
+使用如下
 
 ```js
 const thunkify = require("thunkify");
@@ -113,6 +113,16 @@ readFileThunk('./test.txt')(function(err,value){
 });
 
 ```
+> 源码见[github](https://github.com/tj/node-thunkify)
 
-### co 自运行函数
+根据源码，thunkify 只能针对如`fs.readFile(...args[],callback)`这样将callback作为最后一个参数的标准函数，如果想要使用像`setTimeout(callback,time)`这样的函数，则需要我们做一个转换，如:
 
+```js
+const excuteTimeout = (time,callback) => setTimeout(callback,time);
+
+
+```
+
+### co 模块
+
+co模块是个流程管理模块。
