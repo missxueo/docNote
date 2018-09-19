@@ -1,12 +1,6 @@
-class MyText{
-    name:string;
-    private state:number;
-    protected size:number;
+class Person{
+    static style:string = "human";
+    style:string = "child";
 }
-class TextBlock extends MyText{
-    setSize(){
-        this.size = 100;
-    }
-}
-const input = new TextBlock();
-input.name = "myInput";
+let p = new Person();
+console.log(Person.style === p.style);

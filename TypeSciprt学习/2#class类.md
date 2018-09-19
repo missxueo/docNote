@@ -53,10 +53,37 @@ input.name = "myInput";
 
 ### 存取器
 
-* getters   `get`
-* setters   `set`
+* 取值函数`getters`   `get`
+* 存值函数`setters`   `set`
+
+与ES6中基本相同
 
 ```typescript
 
+class Person{
+    private _name:string;
+    get name():string{
+        return this._name;
+    }
+    set name(value:string){
+        this._name = value;
+    }
+}
+
+```
+
+不支持降级到ES3，如果没有set，则被推断为readonly
+
+### 静态属性
+
+属于类的属性，而非实例的属性；
+
+```typescript
+class Person{
+    static style:string = "human";
+    style:string = "child";
+}
+let p = new Person();
+console.log(Person.style === p.style);
 
 ```
