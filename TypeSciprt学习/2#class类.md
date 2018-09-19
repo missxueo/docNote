@@ -87,3 +87,65 @@ let p = new Person();
 console.log(Person.style === p.style);
 
 ```
+
+### 抽象类
+
+跟接口类似，不可以单独实例化。不过，可以使用修饰符。
+
+```typescript
+
+abstract class Human{
+    speak(who:string):string{
+        return `hello,${who}`;
+    }
+    protected height:number;
+    private avgHeight:number;
+    public name:string;
+}
+class Child extends Human{
+    constructor(_name:string){
+        super();
+        this.name = _name;
+    }
+    play(){
+        console.log(`${this.name} is playing`);
+    }
+}
+let lili = new Child(`lili`);
+lili.speak('jane');
+let jane = new Human();//error
+
+```
+
+### 类的高级使用
+
+```typescript
+
+class Human{
+    static type:number = 0x99;
+    talk(){}
+}
+class Child extends Human{
+    show(){
+        console.log(`the human type is ${Child.type}`);
+    }
+}
+let c = new Child();
+c.show();
+let nChild: typeof Human = Child;
+let nc = new nChild();
+nc.talk();
+nc.show();//error
+
+```
+如上，通过指定变量`let nc:typeof Human`的类型，(使用typeof 指定类型)，来达到构造函数的传递。
+
+```typescript
+//1
+let nc:typeof Human = Human;
+//2
+let child = new Child();
+let c:Human = child;
+//如上，1和2在语法上其实是一样的。
+```
+
