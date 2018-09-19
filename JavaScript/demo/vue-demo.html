@@ -1,0 +1,45 @@
+
+<table id="tb">
+    <thead>
+        <tr>
+            <th>
+                col1
+            </th>
+            <th>
+                col2
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr v-for="(row,idx) in rows">
+            <td>row{{idx}}</td>
+            <td>
+                <input type="text" v-model="row" v-bind:id="idx" v-on:change="textChange(row)" >
+            </td>
+        </tr>
+    </tbody>
+    <tfoot>
+        {{now}}
+    </tfoot>
+</table>
+<script type="text/javascript">
+
+    var vm = new Vue({
+        el:"#tb",
+        data:{
+            rows:[],
+        },
+        computed:{
+            now:function(){
+                return Date.now();
+            },
+        },
+        methods:{
+            textChange:function(row){
+                console.log(`text changed ${row}`);
+            }
+        },
+        
+    });
+
+</script>
