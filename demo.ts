@@ -1,6 +1,3 @@
-class Mapper {
-    [propName:string]:number;
+type ReadonlyArr<T> = {
+    readonly [P in keyof T]: T[P];
 }
-
-let c:Mapper = {};
-c[1] = 5;
