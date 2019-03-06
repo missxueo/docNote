@@ -140,6 +140,7 @@ new HostBuilder().ConfigureHostConfiguration(builder =>
         //.AddCommandLine(args) 
         ;
     })
+    
     //...
 
 ```
@@ -159,10 +160,49 @@ $env:DOTNETCORE_ENVIRONMENT
 
 在`ConfigureHostConfiguration()`中使用`.AddCommandLine(args)`来指定参数。
 
-现在我们可以通过 `dotnet run --environment=Development`来指定dev环境了。
+现在我们可以通过 `dotnet run --environment=Development`来指定dev环境了，此时我们发现我们终于成功加载`appsettings.Development.json`中的配置信息了。
 
 
-## 使用Autofac来替代默认的DI
+## 使用Autofac来替代默认的 DI
 
+### 简单认识一下Autofac
 
+一个第三方的依赖注入容器，相对`Microsft.Extensions.DependencyInjection`使用更加简单方便。
 
+### 集成到Host中
+
+通过Nuget安装以下两个包
+
+> Install-Package Autofac  
+
+> Install-Package Autofac.Extensions.DependencyInection
+
+我们可以使用`UseServiceProviderFactory()`和`service.AddAutofac()` 将默认的DI 替换成 `Autofac`;
+
+使用`ConfigureContainer<ContainerBuilder>()`可以使用Autofac来注入服务；
+
+```c#
+//省略了非关键代码
+static IHostBuilder CreateDefaultHost(string[] args) => new HostBuilder()
+//...略
+    .ConfigureServices((ctx, services) =>
+    {
+        services.AddLogging(x=>{x.AddConsole();});
+
+        services.AddAutofac();
+    })
+    .ConfigureContainer<ContainerBuilder>(builder => 
+    {
+        builder.RegisterType<CustomHostService>()
+        .As<IHostedService>()
+        .InstancePerDependency();
+    })          
+    .UseServiceProviderFactory<ContainerBuilder>(new AutofacServiceProviderFactory())
+//...略
+```
+
+## 总结
+
+个人认为出现GenericHost解决的几个痛点，相对AspNetCore中的管道机制，控制台程序如果不依靠GenericHost来管理Di，想进行大量`Microsoft.Extensions`包的集成会非常困难。通过IHostedService，可以方便的进行服务的托管。
+
+> 源码: https://github.com/missxueo/docs-generic-host
