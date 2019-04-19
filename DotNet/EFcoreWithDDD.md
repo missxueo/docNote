@@ -7,6 +7,7 @@
 
 本文使用EFCore，部分API不适用于EF；本文不谈DDD。
 
+
 以下引出几个知识点：
 
 * backing field
@@ -16,7 +17,7 @@
 * navigation property
 * converter
 
-## 定义模型
+## 让我们开始吧
 
 我们首先定义一个复杂关系的 对象模型;
 
@@ -90,194 +91,183 @@ var entity = ctx.Set<BookEntity>().FirstOrDefault(x=>EF.Property<string>(x,"Id")
 * `OwnsOne()`
 * `OwnsMany()`
 
-```c#
+虽然都会创建导航属性，但是从定义和使用上来看
+，还是有很大区别的。
+
+> 经过测试，导航属性不能通过构造函数绑定，所以以下配置中，均使用 *private setter* 。
+>> （如果有读者发现错误，欢迎指正。）
 
 
+下面我们就对两种API进行配置。
 
-```
+#### OwnsType的配置
 
+从使用上的角度上来看，`OwnsType`像其名字一样,强调的是*A拥有B*，这个属性是这个类固有的，没有懒加载的配置。
 
-
-```c#
-    class BookEntity
-    {
-        private BookEntity(string name)
-        {
-            Name = name;
-        }
-
-        public BookEntity(string name, AuthorInfo author,BookCatalogEntity catalog)
-        {
-            Name = name;
-            Author = author;
-            Catalog = catalog;
-        }
-
-        public string Name { get; }
-
-        public AuthorInfo Author { get; private set; }
-
-        public BookCatalogEntity Catalog { get; private set; }
-
-        public EnumBookType Type { get; private set; }
-
-
-        private IList<BookChapterEntity> _chapters = new List<BookChapterEntity>(); // back filed
-
-        public IEnumerable<BookChapterEntity> Chapters => _chapters;
-
-
-        private List<KeyWordInfo> _keyWords = new List<KeyWordInfo>();
-
-        public IEnumerable<KeyWordInfo> KeyWords => _keyWords;
-
-        public string BookCoverImage { get; private set; }
-
-        //...
-    }
-
-    class AuthorInfo
-    {
-        public AuthorInfo(string name)
-        {
-            Name = name;
-        }
-        public string Name { get; }
-    }
-
-    enum EnumBookType
-    {
-        History,
-        Law,
-        IT,
-    }
-
-    class KeyWordInfo
-    {
-        public KeyWordInfo(string word)
-        {
-            Word = word;
-        }
-
-        public string Word { get; }
-    }
-
-    class BookChapterEntity
-    {
-        public BookChapterEntity(string title, int index)
-        {
-            Title = title;
-            Index = index;
-        }
-
-        public string Title { get; }
-
-        public int Index { get; }
-    }
-
-    class BookCatalogEntity
-    {
-        public BookCatalogEntity(string name)
-        {
-            Name = name;
-        }
-        public string Name { get; }
-        public string Description { get; private set; }
-
-        //...
-    }
-
-```
-
-## 配置数据库的映射
-
-配置关系映射，我们主要使用以下几个Fluent Api
-
-* OwnsOne ( ...args )
-* OwnsMany ( ...args )
-* HasOne ( ...args )
-* HasMany ( ...args )
+扩展我们之前写义的实体类。
 
 ```c#
-    class BookEntityTypeConfiguration : IEntityTypeConfiguration<BookEntity>
-    {
-        public void Configure(EntityTypeBuilder<BookEntity> builder)
-        {
-            builder.Property<string>("Id").HasColumnName("_id_").HasValueGenerator<StringGuidValueGenerator>();
-            builder.HasKey("Id");
+class BookEntity{
+    //...略
+    public AuthorInfo Author { get; private set; }
 
-            builder.Property(x => x.Name);
+    private List<KeyWordInfo> _keyWords = new List<KeyWordInfo>();
+    public IEnumerable<KeyWordInfo> KeyWords => _keyWords;
+}
 
-            builder.Property(x => x.Type)
-                .HasConversion<string>(k => k.ToString(), v => Enum.Parse<EnumBookType>(v));
-
-            builder.OwnsOne(x => x.Author, b => {
-                b.Property(v => v.Name).HasColumnName("AuthorName");
-            });
-
-            var prop = builder.Metadata.FindNavigation("Author");
-            prop.SetPropertyAccessMode(PropertyAccessMode.FieldDuringConstruction);
-
-            builder.OwnsOne(x => x.Catalog, b =>
-            {
-                b.ToTable("BookCatalog");
-                b.Property<int>("Id").HasColumnName("_id_");
-                b.Property(x => x.Name);
-
-                b.HasForeignKey("BookId");
-            });
-
-            var catalogProp = builder.Metadata.FindNavigation("Catalog");
-            catalogProp.SetPropertyAccessMode(PropertyAccessMode.FieldDuringConstruction);
-
-
-            builder.HasMany(x => x.Chapters)
-                .WithOne()
-                .HasForeignKey("BookId");
-
-            builder.Metadata.FindNavigation(nameof(BookEntity.Chapters))
-                .SetPropertyAccessMode(PropertyAccessMode.Field);
-
-
-            builder.OwnsMany(x => x.KeyWords, b =>
-            {
-                b.ToTable("BookKeyWords");
-                b.Property<int>("Id").HasColumnName("_id_");
-                b.HasKey("Id");
-
-                b.Property(x => x.Word);
-                b.HasForeignKey("BookId");
-            });
-
-            builder.Metadata.FindNavigation(nameof(BookEntity.KeyWords))
-                .SetPropertyAccessMode(PropertyAccessMode.Field);
-
-        }
+class AuthorInfo
+{
+    public AuthorInfo(string name){
+        Name = name;
     }
-
-    class BookChapterEntityTypeConfiguration : IEntityTypeConfiguration<BookChapterEntity>
-    {
-        public void Configure(EntityTypeBuilder<BookChapterEntity> builder)
-        {
-            builder.Property(x => x.Title);
-            builder.Property(x => x.Index);
-
-            builder.Property<string>("Id");
-        }
+    public string Name { get; }
+}
+class KeyWordInfo
+{
+    public KeyWordInfo(string word){
+        Word = word;
     }
+    public string Word { get; }
+}
 
-    class StringGuidValueGenerator : ValueGenerator<string>
+```
+扩展配置类
+
+```c#
+class BookEntityTypeConfiguration : IEntityTypeConfiguration<BookEntity>{
+    builder.OwnsOne(x => x.Author, b => {
+        b.Property(v => v.Name).HasColumnName("AuthorName");
+    });
+    builder.OwnsMany(x => x.KeyWords, b =>
     {
-        public override bool GeneratesTemporaryValues => false;
+        b.ToTable("BookKeyWords");
+        b.Property<int>("Id").HasColumnName("_id_");
+        b.HasKey("Id");
+        b.Property(x => x.Word);
+        b.HasForeignKey("BookId");
+    });
 
-        public override string Next(EntityEntry entry)
-        {
-            return Guid.NewGuid().ToString("N");
-        }
-    }
+    builder.Metadata.FindNavigation(nameof(BookEntity.KeyWords))
+        .SetPropertyAccessMode(PropertyAccessMode.Field);
+}
 ```
 
-大致解释下配置项。
+默认情况下,`OwnsOne()`会与实体映射在同一张表,`OwnsMany()`没有做具体测试。
+
+这里我们对导航属性`KeyWords`进行了配置，因为它是只读的，所以我们将它配置为绑定为字段，这个私有字段叫做`backing field`(支持字段??)，在EF中默认有以下4种格式，当然这是支持自定义的:
+
+- _< camel-cased property name >
+- _< property name >
+- m_< camel-cased property name >
+- m_< property name >
+
+> 那什么是`backing field` ???
+
+#### ReleationShip 配置
+
+如`HasOne()`这种关系API，更适合于*A与B*之前的关系，比如 1-* （一对多）的关系、1-1（一对一）的关系等等，所以这种配置必须在不同表中。
+
+```c#
+class BookEntity{
+    //...略
+    private IList<BookChapterEntity> _chapters = new List<BookChapterEntity>(); 
+    public IEnumerable<BookChapterEntity> Chapters => _chapters;
+}
+
+```
+```c#
+class BookEntityTypeConfiguration : IEntityTypeConfiguration<BookEntity>
+{
+    public void Configure(EntityTypeBuilder<BookEntity> builder)
+    {
+        //...略
+        builder.HasMany(x => x.Chapters).WithOne().HasForeignKey("BookId");
+
+        builder.Metadata.FindNavigation(nameof(BookEntity.Chapters))
+            .SetPropertyAccessMode(PropertyAccessMode.Field);
+    }
+}
+class BookChapterEntityTypeConfiguration : IEntityTypeConfiguration<BookChapterEntity>
+{
+    public void Configure(EntityTypeBuilder<BookChapterEntity> builder)
+    {
+        builder.Property(x => x.Title);
+        builder.Property(x => x.Index);
+        builder.Property<string>("Id");
+    }
+}
+```
+
+从配置上来看，我们的两个实体都是分开配置的，而从实体类角度上看，这里是两个类体的关系，我们配置的是 1-*的关系。
+使用`HasOne()`等*ReleationShip* Api配置的属性，默认是不加载的，我们可以通过配置进行立即加载或延迟加载。
+
+> 我们可以查看官方文档查看懒加载的方式。
+> > https://docs.microsoft.com/en-us/ef/core/querying/related-data
+
+### backing field (支持字段)
+
+我们都知道C#中有这样子的写法。
+
+```c#
+class Foo{
+    public string Name{get;set;}
+}
+```
+写完整了是这样的。
+```c#
+class Foo{
+    private string _name;
+    public string Name{
+        get{return _name;}
+        set{_name = value;}
+    }
+}
+```
+而在其它语言中，可能是这样的。
+```c#
+class Foo{
+    private string _name;
+    public string GetName(){
+        return _name;
+    }
+    public void SetName(value){
+        _name = value;
+    }
+}
+```
+我认为以上的`_name`就是一个*backing field*; 以字面意思解释就是属性底层的字段。
+
+### 查询过滤器 Query Filter
+
+我们公司的业务设计上，数据不能真删，通过一个 *IsDeleted* 字段进行控制。这样在有必要的情况下，我们可以将数据进行还原。
+
+```c#
+class BookEntityTypeConfiguration : IEntityTypeConfiguration<BookEntity>
+{
+    public void Configure(EntityTypeBuilder<BookEntity> builder)
+    {
+        //...略
+        builder.Property<bool>("IsDeleted");
+        builder.HasQueryFilter(x=>!EF.Property<bool>(x,"IsDeleted"));
+    }
+}
+```
+我们通过`HasQueryFilter()`配置一个全局过滤器。
+
+什么？你说又要查询的时候要查询`IsDeleted == true`的数据？？
+```c#
+var allBooks = ctx.Set<BookEntity>()
+    .IgnoreQueryFilters()
+    .ToList();
+//通过 IgnoreQueryFilters 忽视掉全局过滤器;
+```
+
+> 更多的查看官方文档
+>> https://docs.microsoft.com/en-us/ef/core/querying/filters
 
 
+## 结尾总结
 
+在我们项目切换到DDD模式下开发的时候，使用关系型数据库作为仓储的实现真是头疼。还好，我们有EF，但是如果对EF的API和映射不熟悉的话，会导致出现因技术原因修改领域模型的情况，而这种情况是我们应该避免的。
+
+> 如发现文中有误，欢迎指正。
