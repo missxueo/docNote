@@ -22,7 +22,7 @@ public async Task InvokeAsync(){
 
 ```
 
-## `Promise` : JS中的*Task*
+## JS中的异步
 
 对于一个JQueryer，我们应该对于下面的AJAX代码非常熟悉:
 
@@ -43,6 +43,51 @@ $.get(urla,function(){
     })
 })
 ```
+
+为了解决这个问题，我们可以使用Generator函数来将异步代码以同步的方式进行书写。
+
+### Generator函数
+
+```JS
+const timeOutBuilder = function(time){
+    return (callback)=>{
+        setTimeout(()=>{
+            callback(new Date())
+        },time)
+    }
+}
+function * buildGen(){
+    yield timeOutBuilder(1000)
+    yield timeOutBuilder(2000)
+}
+//buildGen是个Generator函数
+let gen = buildGen()
+let result = gen.next()
+if(!result.done)
+{
+    result.value((dt)=>{
+        console.log(dt)
+        result = gen.next()
+        if(!result.done)
+        {
+            result.value(()=>{
+                //...more
+            })
+        }
+    })
+}
+
+```
+当Generator函数调用的时候，返回一个Iterator迭代器对象，此时Generator函数并未执行，只有调用Iterator的next()方法才开始执行，直到遇到yield关键字或方法结束。
+
+由于Generator函数可以使用next()控制函数的执行流程，所以可以使用逆归函数将
+
+```js
+
+
+```
+
+
 
 而`Promise`就是为了解决这个问题所推出的一个原生类型。
 Promise就像一个容器，这个容器有三种状态，pending(进行中)，fulfilled(已成功)，rejected(已失败)；
