@@ -87,7 +87,7 @@ if(!result.done)
 
 ```
 
-
+### Promise类
 
 而`Promise`就是为了解决这个问题所推出的一个原生类型。
 Promise就像一个容器，这个容器有三种状态，pending(进行中)，fulfilled(已成功)，rejected(已失败)；
