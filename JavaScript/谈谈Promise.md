@@ -47,3 +47,33 @@ $.get(urla,function(){
 而`Promise`就是为了解决这个问题所推出的一个原生类型。
 Promise就像一个容器，这个容器有三种状态，pending(进行中)，fulfilled(已成功)，rejected(已失败)；
 
+我们先定义一个Promise实例。
+
+```javascript
+var timeOutAsync = new Promise(function(resolve,reject){
+    console.log("start action",new Date().toLocaleTimeString())
+    setTimeout(()=>{
+        console.log("before callback",new Date().toLocaleTimeString())
+        resolve(new Date().toLocaleTimeString())
+        //reject("err in timeout")
+    })
+})
+timeOutAsync.then(rsp=>{
+    console.log("callback",rsp)
+    //return Promise.reject("err in callback")
+}).catch(err=>{
+    console.log("catch",err)
+})
+//我们会得到以下输出
+/**
+ * start action 5:48:52 PM
+ * before callback  5:48:54 PM
+ * callback 5:48:54 PM
+ * /
+```
+
+一个Promise被实例化就开始执行，所以如果有需要我们可以使用工厂函数对Promise进行实例化。
+而一个Promise实例状态已结束后，就不能再设为其它状态了。比如我们在上方的代码
+
+
+
