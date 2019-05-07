@@ -118,8 +118,11 @@ readFileThunk('./test.txt')(function(err,value){
 根据源码，thunkify 只能针对如`fs.readFile(...args[],callback)`这样将callback作为最后一个参数的标准函数，如果想要使用像`setTimeout(callback,time)`这样的函数，则需要我们做一个转换，如:
 
 ```js
-const excuteTimeout = (time,callback) => setTimeout(callback,time);
-
+const executeTimeout = (time,callback) => setTimeout(callback,time);
+const executeTimeoutThunk = thunkify(executeTimeout);
+executeTimeoutThunk(1000)(function(){
+    console.log(new Date())    ;
+});
 
 ```
 
