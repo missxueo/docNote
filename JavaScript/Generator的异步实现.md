@@ -1,11 +1,10 @@
-
 # Generator的异步实现
 
+整理了一下在学习和使用JS异步过程中的一些知识点。核心是在Generator实例的的回调中调度实例的下一步，同样的思想也能用于其它语言。比如Python中使用Generator实现了协程。C#早期有也这种TheadPool+Generator的异步实现。
 
 ## 什么是Generator
 
-Generator 为生成器的意思；
-
+Generator 为生成器的意思，生成器函数的执行可以分段执行，函数在每一次调用后，函数只会执行到下一个位置再跳出函数。
 
 ## Generator的简单使用
 
@@ -100,6 +99,8 @@ readFileThunk(fileName)(callback);
 
 #### thunkify 模块
 
+thunkify模块提供了封装好的Thunk函数转换器。
+
 > npm install thunkify
 
 使用如下
@@ -128,4 +129,18 @@ executeTimeoutThunk(1000)(function(){
 
 ### co 模块
 
-co模块是个流程管理模块。
+co模块是个流程管理模块。基于ES6的Generator和yield，能让我们用同步的形式编写异步代码。提供了上文中的`run`函数的作用。
+
+> npm install co
+
+```js
+
+co(function*(){
+    var file1 = yield readFileThunk('./test.txt',{encoding:'utf8'});
+    console.log(file1);
+    var file2 = yield readFileThunk('./test2.txt',{encoding:'utf8'});
+    console.log(file2);
+});
+
+```
+
